@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/lomloe_sa_gen/__init__.py
+src/lomloe_sa_gen/config.py
+src/lomloe_sa_gen/logging.py
+src/lomloe_sa_gen/main.py
+src/lomloe_sa_rubric_generator.egg-info/PKG-INFO
+src/lomloe_sa_rubric_generator.egg-info/SOURCES.txt
+src/lomloe_sa_rubric_generator.egg-info/dependency_links.txt
+src/lomloe_sa_rubric_generator.egg-info/requires.txt
+src/lomloe_sa_rubric_generator.egg-info/top_level.txt

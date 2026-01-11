@@ -1,0 +1,33 @@
+[project]
+name = "lomloe-sa-rubric-generator"
+version = "0.1.0"
+description = "Generador de Situaciones de Aprendizaje y rúbricas (LOMLOE) con plantillas e IA opcional."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi[standard]",
+  "jinja2",
+  "pydantic>=2",
+  "python-docx",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+lint = ["ruff"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Generador SA + Rúbricas</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      label { display:block; font-weight: 600; margin-top: 12px; }
+      input, textarea { width: 100%; padding: 10px; }
+      textarea { min-height: 90px; }
+      .hint { color: #555; font-size: 0.9rem; }
+      button { margin-top: 18px; padding: 10px 14px; cursor: pointer; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    </style>
+  </head>
+  <body>
+    <h1>Generador de Situaciones de Aprendizaje (borrador)</h1>
+    <p class="hint">
+      MVP: genera un Markdown a partir de los campos. Separe listas con saltos de línea.
+    </p>
+
+    <form action="/generate" method="post">
+      <div class="row">
+        <div>
+          <label>Nivel</label>
+          <input name="nivel" placeholder="1º Bachillerato / 2º ESO / FP..." required />
+
+          <label>Materia</label>
+          <input name="materia" placeholder="Tecnología e Ingeniería I" required />
+
+          <label>Título de la SA</label>
+          <input name="titulo" placeholder="Diseño y prototipado de..." required />
+        </div>
+
+        <div>
+          <label>Competencias (una por línea)</label>
+          <textarea name="competencias" placeholder="CE1...\nCE2..." required></textarea>
+
+          <label>Criterios de evaluación (uno por línea)</label>
+          <textarea name="criterios" placeholder="C1...\nC2..." required></textarea>
+        </div>
+      </div>
+
+      <label>Producto final</label>
+      <textarea name="producto_final" required></textarea>
+
+      <label>Metodología</label>
+      <textarea name="metodologia" required></textarea>
+
+      <label>Atención a la diversidad</label>
+      <textarea name="atencion_diversidad" required></textarea>
+
+      <label>Instrumentos de evaluación (uno por línea)</label>
+      <textarea name="instrumentos_evaluacion" required></textarea>
+
+      <h2>Sesiones (3 por defecto)</h2>
+      <p class="hint">En este micro-paso fijamos 3 sesiones para simplificar. Luego las haremos dinámicas.</p>
+
+      <div class="row">
+        <div>
+          <label>Sesión 1 - Título</label>
+          <input name="s1_title" required />
+          <label>Sesión 1 - Minutos</label>
+          <input name="s1_minutes" type="number" min="10" max="240" value="55" required />
+          <label>Sesión 1 - Actividades</label>
+          <textarea name="s1_activities" required></textarea>
+          <label>Sesión 1 - Evidencia</label>
+          <input name="s1_evidence" required />
+        </div>
+
+        <div>
+          <label>Sesión 2 - Título</label>
+          <input name="s2_title" required />
+          <label>Sesión 2 - Minutos</label>
+          <input name="s2_minutes" type="number" min="10" max="240" value="55" required />
+          <label>Sesión 2 - Actividades</label>
+          <textarea name="s2_activities" required></textarea>
+          <label>Sesión 2 - Evidencia</label>
+          <input name="s2_evidence" required />
+        </div>
+      </div>
+
+      <div>
+        <label>Sesión 3 - Título</label>
+        <input name="s3_title" required />
+        <label>Sesión 3 - Minutos</label>
+        <input name="s3_minutes" type="number" min="10" max="240" value="55" required />
+        <label>Sesión 3 - Actividades</label>
+        <textarea name="s3_activities" required></textarea>
+        <label>Sesión 3 - Evidencia</label>
+        <input name="s3_evidence" required />
+      </div>
+
+      <button type="submit">Generar Markdown</button>
+    </form>
+
+    <hr />
+    <p class="hint">Healthcheck: <a href="/health">/health</a></p>
+  </body>
+</html>
