@@ -8,6 +8,13 @@ from fastapi.templating import Jinja2Templates
 from lomloe_sa_gen.core.models import SASpec, SessionSpec
 from lomloe_sa_gen.services.markdown import render_sa_markdown
 
+from pydantic import ValidationError
+
+from lomloe_sa_gen.services.docx_export import export_sa_docx
+from lomloe_sa_gen.services.packaging import build_zip
+from lomloe_sa_gen.services.rubric import render_rubric_markdown
+
+
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "adapters" / "web" / "templates"))
 
@@ -49,27 +56,39 @@ def create_app() -> FastAPI:
         except json.JSONDecodeError as e:
             raise HTTPException(status_code=400, detail=f"sessions_json inválido: {e.msg}") from e
 
-        sessions = [SessionSpec(**s) for s in sessions_raw]
+        try:
+            sessions = [SessionSpec(**s) for s in sessions_raw]
+            spec = SASpec(
+                nivel=nivel,
+                materia=materia,
+                titulo=titulo,
+                competencias=_split_lines(competencias),
+                criterios=_split_lines(criterios),
+                producto_final=producto_final.strip(),
+                metodologia=metodologia.strip(),
+                atencion_diversidad=atencion_diversidad.strip(),
+                instrumentos_evaluacion=_split_lines(instrumentos_evaluacion),
+                sesiones=sessions,
+            )
+        except ValidationError as e:
+            raise HTTPException(status_code=422, detail=e.errors()) from e
 
-        spec = SASpec(
-            nivel=nivel,
-            materia=materia,
-            titulo=titulo,
-            competencias=_split_lines(competencias),
-            criterios=_split_lines(criterios),
-            producto_final=producto_final.strip(),
-            metodologia=metodologia.strip(),
-            atencion_diversidad=atencion_diversidad.strip(),
-            instrumentos_evaluacion=_split_lines(instrumentos_evaluacion),
-            sesiones=sessions,
+        sa_md = render_sa_markdown(spec, template_type="sa_generic")
+        rubric_md = render_rubric_markdown(spec, template_type="sa_generic")
+        docx_bytes = export_sa_docx(spec)
+
+        zip_bytes = build_zip(
+            {
+                "situacion_aprendizaje.md": sa_md.encode("utf-8"),
+                "rubrica.md": rubric_md.encode("utf-8"),
+                "situacion_aprendizaje.docx": docx_bytes,
+            }
         )
 
-        md = render_sa_markdown(spec, template_type="sa_generic")
-
         return Response(
-            content=md,
-            media_type="text/markdown; charset=utf-8",
-            headers={"Content-Disposition": 'attachment; filename="situacion_aprendizaje.md"'},
+            content=zip_bytes,
+            media_type="application/zip",
+            headers={"Content-Disposition": 'attachment; filename="sa_pack.zip"'},
         )
 
     return app

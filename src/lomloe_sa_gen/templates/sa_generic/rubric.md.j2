@@ -1,0 +1,15 @@
+# Rúbrica — {{ titulo }}
+
+> Borrador. Revise y ajuste descriptores y pesos.
+
+## Criterios evaluados
+{% for c in criterios -%}
+- {{ c }}
+{% endfor %}
+
+## Tabla de rúbrica
+| Criterio | {{ rubric_levels[0] }} | {{ rubric_levels[1] }} | {{ rubric_levels[2] }} | {{ rubric_levels[3] }} |
+|---|---|---|---|---|
+{% for row in rubric_rows -%}
+| {{ row.criterion }} | {{ row.descriptors[0] }} | {{ row.descriptors[1] }} | {{ row.descriptors[2] }} | {{ row.descriptors[3] }} |
+{% endfor %}
