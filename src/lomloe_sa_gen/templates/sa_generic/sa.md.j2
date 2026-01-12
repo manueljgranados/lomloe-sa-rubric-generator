@@ -1,0 +1,36 @@
+# {{ titulo }}
+
+- **Nivel:** {{ nivel }}
+- **Materia:** {{ materia }}
+
+## Competencias específicas
+{% for c in competencias -%}
+- {{ c }}
+{% endfor %}
+
+## Criterios de evaluación
+{% for c in criterios -%}
+- {{ c }}
+{% endfor %}
+
+## Producto final
+{{ producto_final }}
+
+## Metodología
+{{ metodologia }}
+
+## Atención a la diversidad
+{{ atencion_diversidad }}
+
+## Instrumentos de evaluación
+{% for i in instrumentos_evaluacion -%}
+- {{ i }}
+{% endfor %}
+
+## Secuenciación de sesiones
+{% for s in sesiones %}
+### Sesión {{ loop.index }}. {{ s.title }} ({{ s.minutes }} min)
+- **Actividades:** {{ s.activities }}
+- **Evidencia:** {{ s.evidence }}
+
+{% endfor %}

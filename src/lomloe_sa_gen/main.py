@@ -1,6 +1,7 @@
 from pathlib import Path
+import json
 
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -41,19 +42,15 @@ def create_app() -> FastAPI:
         metodologia: str = Form(...),
         atencion_diversidad: str = Form(...),
         instrumentos_evaluacion: str = Form(...),
-        s1_title: str = Form(...),
-        s1_minutes: int = Form(...),
-        s1_activities: str = Form(...),
-        s1_evidence: str = Form(...),
-        s2_title: str = Form(...),
-        s2_minutes: int = Form(...),
-        s2_activities: str = Form(...),
-        s2_evidence: str = Form(...),
-        s3_title: str = Form(...),
-        s3_minutes: int = Form(...),
-        s3_activities: str = Form(...),
-        s3_evidence: str = Form(...),
+        sessions_json: str = Form(...),
     ):
+        try:
+            sessions_raw = json.loads(sessions_json)
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=400, detail=f"sessions_json inválido: {e.msg}") from e
+
+        sessions = [SessionSpec(**s) for s in sessions_raw]
+
         spec = SASpec(
             nivel=nivel,
             materia=materia,
@@ -64,35 +61,15 @@ def create_app() -> FastAPI:
             metodologia=metodologia.strip(),
             atencion_diversidad=atencion_diversidad.strip(),
             instrumentos_evaluacion=_split_lines(instrumentos_evaluacion),
-            sesiones=[
-                SessionSpec(
-                    title=s1_title.strip(),
-                    minutes=s1_minutes,
-                    activities=s1_activities.strip(),
-                    evidence=s1_evidence.strip(),
-                ),
-                SessionSpec(
-                    title=s2_title.strip(),
-                    minutes=s2_minutes,
-                    activities=s2_activities.strip(),
-                    evidence=s2_evidence.strip(),
-                ),
-                SessionSpec(
-                    title=s3_title.strip(),
-                    minutes=s3_minutes,
-                    activities=s3_activities.strip(),
-                    evidence=s3_evidence.strip(),
-                ),
-            ],
+            sesiones=sessions,
         )
 
-        md = render_sa_markdown(spec)
+        md = render_sa_markdown(spec, template_type="sa_generic")
 
-        filename = "situacion_aprendizaje.md"
         return Response(
             content=md,
             media_type="text/markdown; charset=utf-8",
-            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+            headers={"Content-Disposition": 'attachment; filename="situacion_aprendizaje.md"'},
         )
 
     return app
