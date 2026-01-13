@@ -5,6 +5,7 @@ description = "Generador de Situaciones de Aprendizaje y rúbricas (LOMLOE) con 
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+  "docxtpl>=0.20.2",
   "fastapi[standard]",
   "jinja2",
   "pydantic>=2",
@@ -31,3 +32,6 @@ target-version = "py312"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+lomloe_sa_gen = ["assets/templates/*.docx"]

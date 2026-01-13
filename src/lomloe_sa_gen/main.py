@@ -10,7 +10,9 @@ from lomloe_sa_gen.services.markdown import render_sa_markdown
 
 from pydantic import ValidationError
 
-from lomloe_sa_gen.services.docx_export import export_sa_docx
+from lomloe_sa_gen.services.docx_template_export import export_sa_docx_from_template
+from lomloe_sa_gen.services.metadata import build_metadata
+from lomloe_sa_gen.services.naming import pack_basename
 from lomloe_sa_gen.services.packaging import build_zip
 from lomloe_sa_gen.services.rubric import render_rubric_markdown
 
@@ -50,6 +52,7 @@ def create_app() -> FastAPI:
         atencion_diversidad: str = Form(...),
         instrumentos_evaluacion: str = Form(...),
         sessions_json: str = Form(...),
+        resumen: str = Form(""),
     ):
         try:
             sessions_raw = json.loads(sessions_json)
@@ -73,22 +76,35 @@ def create_app() -> FastAPI:
         except ValidationError as e:
             raise HTTPException(status_code=422, detail=e.errors()) from e
 
+        basename = pack_basename(spec)
+
         sa_md = render_sa_markdown(spec, template_type="sa_generic")
         rubric_md = render_rubric_markdown(spec, template_type="sa_generic")
-        docx_bytes = export_sa_docx(spec)
+
+        docx_bytes = export_sa_docx_from_template(spec, resumen=resumen)
+
+        resumen_text = (resumen or "").strip()
+        if not resumen_text:
+            from lomloe_sa_gen.services.docx_template_export import _auto_summary
+
+            resumen_text = _auto_summary(spec)
+
+        metadata = build_metadata(spec, resumen=resumen_text)
+        metadata_bytes = json.dumps(metadata, ensure_ascii=False, indent=2).encode("utf-8")
 
         zip_bytes = build_zip(
             {
-                "situacion_aprendizaje.md": sa_md.encode("utf-8"),
-                "rubrica.md": rubric_md.encode("utf-8"),
-                "situacion_aprendizaje.docx": docx_bytes,
+                f"{basename}.md": sa_md.encode("utf-8"),
+                f"{basename}__rubrica.md": rubric_md.encode("utf-8"),
+                f"{basename}.docx": docx_bytes,
+                f"{basename}__metadata.json": metadata_bytes,
             }
         )
 
         return Response(
             content=zip_bytes,
             media_type="application/zip",
-            headers={"Content-Disposition": 'attachment; filename="sa_pack.zip"'},
+            headers={"Content-Disposition": 'attachment; filename="{basename}.zip"'},
         )
 
     return app

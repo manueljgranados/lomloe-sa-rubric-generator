@@ -4,6 +4,7 @@ Version: 0.1.0
 Summary: Generador de Situaciones de Aprendizaje y rúbricas (LOMLOE) con plantillas e IA opcional.
 Requires-Python: >=3.12
 Description-Content-Type: text/markdown
+Requires-Dist: docxtpl>=0.20.2
 Requires-Dist: fastapi[standard]
 Requires-Dist: jinja2
 Requires-Dist: pydantic>=2
