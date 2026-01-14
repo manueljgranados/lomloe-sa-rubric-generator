@@ -17,3 +17,6 @@ uv.lock
 
 # Regla plantilla
 data/
+
+# Parametros locales
+.env

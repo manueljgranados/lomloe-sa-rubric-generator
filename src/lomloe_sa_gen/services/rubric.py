@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from lomloe_sa_gen.core.models import SASpec
+from lomloe_sa_gen.core.models import SASpec, RubricSpec
 from lomloe_sa_gen.services.template_renderer import TemplateRenderer
 
 
@@ -13,11 +13,11 @@ class RubricRow:
     descriptors: list[str]
 
 
-def _default_levels() -> list[str]:
+def default_levels() -> list[str]:
     return ["4 - Excelente", "3 - Notable", "2 - Suficiente", "1 - En proceso"]
 
 
-def _build_rows(spec: SASpec) -> list[RubricRow]:
+def build_default_rows(spec: SASpec) -> list[RubricRow]:
     placeholder = "Definir descriptor."
     return [
         RubricRow(criterion=c, descriptors=[placeholder, placeholder, placeholder, placeholder])
@@ -25,13 +25,22 @@ def _build_rows(spec: SASpec) -> list[RubricRow]:
     ]
 
 
-def render_rubric_markdown(spec: SASpec, template_type: str = "sa_generic") -> str:
+def render_rubric_markdown(
+    spec: SASpec,
+    rubric: RubricSpec | None = None,
+    template_type: str = "sa_generic",
+) -> str:
     templates_root = Path(__file__).resolve().parent.parent / "templates"
     renderer = TemplateRenderer(templates_root=templates_root)
 
     context = spec.model_dump()
-    context["rubric_levels"] = _default_levels()
-    context["rubric_rows"] = [r.__dict__ for r in _build_rows(spec)]
+
+    if rubric is None:
+        context["rubric_levels"] = default_levels()
+        context["rubric_rows"] = [r.__dict__ for r in build_default_rows(spec)]
+    else:
+        context["rubric_levels"] = rubric.levels
+        context["rubric_rows"] = [r.model_dump() for r in rubric.rows]
 
     template_path = f"{template_type}/rubric.md.j2"
     return renderer.render(template_path=template_path, context=context)

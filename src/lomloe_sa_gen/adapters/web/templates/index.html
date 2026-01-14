@@ -40,6 +40,30 @@
 
           <label>Criterios de evaluación (uno por línea)</label>
           <textarea name="criterios" placeholder="C1...\nC2..." required></textarea>
+
+          <h2>Rúbrica (editable)</h2>
+
+            <div class="row">
+              <div>
+                <label>Niveles (4)</label>
+                <input id="lvl1" value="4 - Excelente" required minlength="3" />
+                <input id="lvl2" value="3 - Notable" required minlength="3" />
+                <input id="lvl3" value="2 - Suficiente" required minlength="3" />
+                <input id="lvl4" value="1 - En proceso" required minlength="3" />
+                <p class="hint">Puede editar los títulos de nivel.</p>
+              </div>
+              <div>
+                <label>Acciones</label>
+                <button type="button" id="buildRubric">Generar tabla desde criterios</button>
+                <button type="button" id="suggestRubric">Sugerir descriptores (IA opcional)</button>
+                <p class="hint">La sugerencia depende de LLM_ENABLED/LLM_PROVIDER.</p>
+              </div>
+            </div>
+
+            <input type="hidden" id="rubric_json" name="rubric_json" />
+
+<div id="rubricEditor"></div>
+
         </div>
       </div>
 
@@ -137,6 +161,122 @@
           }));
           hiddenJson.value = JSON.stringify(sessions);
         });
+
+        const criteriosEl = document.querySelector('textarea[name="criterios"]');
+        const rubricEditorEl = document.getElementById("rubricEditor");
+        const rubricHidden = document.getElementById("rubric_json");
+
+        function getLevels() {
+          return [
+            document.getElementById("lvl1").value.trim(),
+            document.getElementById("lvl2").value.trim(),
+            document.getElementById("lvl3").value.trim(),
+            document.getElementById("lvl4").value.trim(),
+          ];
+        }
+
+        function getCriterios() {
+          return (criteriosEl.value || "")
+            .split("\n")
+            .map(s => s.trim())
+            .filter(Boolean);
+        }
+
+        function buildRubricTable(levels, criterios, rowsData=null) {
+          rubricEditorEl.innerHTML = "";
+          if (criterios.length === 0) return;
+
+          const table = document.createElement("table");
+          table.style.width = "100%";
+          table.style.borderCollapse = "collapse";
+          table.innerHTML = `
+            <thead>
+              <tr>
+                <th style="border:1px solid #ddd; padding:8px;">Criterio</th>
+                ${levels.map(l => `<th style="border:1px solid #ddd; padding:8px;">${l}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody></tbody>
+          `;
+
+          const tbody = table.querySelector("tbody");
+
+          criterios.forEach((c, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td style="border:1px solid #ddd; padding:8px; vertical-align:top;">
+                <div class="mono">${c}</div>
+              </td>
+              ${[0,1,2,3].map(j => {
+                const val = rowsData?.[idx]?.descriptors?.[j] ?? "";
+                return `<td style="border:1px solid #ddd; padding:8px;">
+                          <textarea class="rub_desc" data-row="${idx}" data-col="${j}" required minlength="3">${val}</textarea>
+                        </td>`;
+              }).join("")}
+            `;
+            tbody.appendChild(tr);
+          });
+
+          rubricEditorEl.appendChild(table);
+        }
+
+        document.getElementById("buildRubric").addEventListener("click", () => {
+          buildRubricTable(getLevels(), getCriterios());
+        });
+
+        document.getElementById("suggestRubric").addEventListener("click", async () => {
+          const levels = getLevels();
+          const criterios = getCriterios();
+          if (criterios.length === 0) return;
+
+          const payload = {
+            criterios,
+            levels,
+            context: `${document.querySelector('input[name="materia"]').value} | ${document.querySelector('input[name="nivel"]').value} | ${document.querySelector('input[name="titulo"]').value}`
+          };
+
+          const res = await fetch("/rubric/suggest", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+            alert("No se pudo sugerir la rúbrica (revise configuración/servidor).");
+            return;
+          }
+
+          const data = await res.json();
+          buildRubricTable(data.levels, criterios, data.rows);
+        });
+
+        // En el submit, además de sesiones, serializamos rubric_json
+        document.querySelector("form").addEventListener("submit", () => {
+          const criterios = getCriterios();
+          const levels = getLevels();
+
+          const table = rubricEditorEl.querySelector("table");
+          if (!table) {
+            // Si no han construido la tabla, la creamos vacía para no romper backend
+            buildRubricTable(levels, criterios);
+          }
+
+          // Recoger descriptores por filas
+          const rows = criterios.map((c, idx) => {
+            const desc = [0,1,2,3].map(j => {
+              const ta = rubricEditorEl.querySelector(`textarea.rub_desc[data-row="${idx}"][data-col="${j}"]`);
+              return (ta?.value || "").trim();
+            });
+            return { criterion: c, descriptors: desc };
+          });
+
+          rubricHidden.value = JSON.stringify({ levels, rows });
+        });
+
+        // Sugerencia: construir tabla automáticamente al cargar, si ya hay criterios
+        // (opcional) buildRubricTable(getLevels(), getCriterios());
+
+
       </script>
     </form>
 

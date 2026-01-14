@@ -6,7 +6,8 @@ from importlib.resources import as_file, files
 
 from docxtpl import DocxTemplate
 
-from lomloe_sa_gen.core.models import SASpec
+from lomloe_sa_gen.core.models import SASpec, RubricSpec
+from lomloe_sa_gen.services.rubric import default_levels, build_default_rows
 
 
 def _auto_summary(spec: SASpec) -> str:
@@ -16,7 +17,9 @@ def _auto_summary(spec: SASpec) -> str:
     )
 
 
-def export_sa_docx_from_template(spec: SASpec, resumen: str | None = None) -> bytes:
+def export_sa_docx_from_template(
+    spec: SASpec, resumen: str | None = None, rubric: RubricSpec | None = None
+) -> bytes:
     template = files("lomloe_sa_gen").joinpath("assets/templates/sa_template.docx")
     resumen_text = (resumen or "").strip() or _auto_summary(spec)
 
@@ -29,12 +32,12 @@ def export_sa_docx_from_template(spec: SASpec, resumen: str | None = None) -> by
         }
     )
 
-    # Contexto rúbrica (igual que en el md)
-    # Reutilizamos los mismos nombres rubric_levels / rubric_rows
-    from lomloe_sa_gen.services.rubric import _default_levels, _build_rows  # simple y directo
-
-    context["rubric_levels"] = _default_levels()
-    context["rubric_rows"] = [r.__dict__ for r in _build_rows(spec)]
+    if rubric is None:
+        context["rubric_levels"] = default_levels()
+        context["rubric_rows"] = [r.__dict__ for r in build_default_rows(spec)]
+    else:
+        context["rubric_levels"] = rubric.levels
+        context["rubric_rows"] = [r.model_dump() for r in rubric.rows]
 
     bio = io.BytesIO()
     with as_file(template) as template_path:

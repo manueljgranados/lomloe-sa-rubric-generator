@@ -32,3 +32,29 @@ class SASpec(BaseModel):
         if not cleaned:
             raise ValueError("Debe incluir al menos un elemento.")
         return cleaned
+
+
+class RubricRowSpec(BaseModel):
+    criterion: str = Field(..., min_length=3)
+    descriptors: list[str] = Field(..., min_length=4, max_length=4)
+
+    @field_validator("descriptors")
+    @classmethod
+    def descriptors_non_empty(cls, v: list[str]) -> list[str]:
+        cleaned = [x.strip() for x in v]
+        if any(len(x) < 3 for x in cleaned):
+            raise ValueError("Cada descriptor debe tener al menos 3 caracteres.")
+        return cleaned
+
+
+class RubricSpec(BaseModel):
+    levels: list[str] = Field(..., min_length=4, max_length=4)
+    rows: list[RubricRowSpec] = Field(..., min_length=1)
+
+    @field_validator("levels")
+    @classmethod
+    def levels_non_empty(cls, v: list[str]) -> list[str]:
+        cleaned = [x.strip() for x in v]
+        if any(len(x) < 3 for x in cleaned):
+            raise ValueError("Cada nivel debe tener al menos 3 caracteres.")
+        return cleaned
