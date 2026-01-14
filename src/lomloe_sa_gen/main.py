@@ -17,6 +17,7 @@ from lomloe_sa_gen.services.metadata import build_metadata
 from lomloe_sa_gen.services.naming import pack_basename
 from lomloe_sa_gen.services.packaging import build_zip
 from lomloe_sa_gen.services.rubric import render_rubric_markdown
+from lomloe_sa_gen.services.rubric_templates import list_rubric_templates, load_rubric_template
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -34,23 +35,34 @@ def create_app() -> FastAPI:
         criterios: list[str] = Field(..., min_length=1)
         levels: list[str] = Field(..., min_length=4, max_length=4)
         context: str = ""  # materia/nivel/titulo (texto libre)
+        rubric_type: str = "proyecto"
 
     @app.post("/rubric/suggest")
     def rubric_suggest(payload: RubricSuggestRequest):
+        tpl = load_rubric_template(payload.rubric_type)
+
+        # Base determinista por plantilla
+        base_rows = [
+            {
+                "criterion": c,
+                "descriptors": [p.replace("{criterion}", c) for p in tpl.descriptor_patterns],
+            }
+            for c in payload.criterios
+        ]
+
         settings = Settings()
         provider = get_suggest_provider(settings)
 
-        descriptors = provider.suggest(payload.criterios, payload.levels, payload.context)
-
-        rubric_dict = {
-            "levels": payload.levels,
-            "rows": [
-                {"criterion": c, "descriptors": d}
-                for c, d in zip(payload.criterios, descriptors, strict=False)
-            ],
-            "provider": provider.name,
-        }
-        return JSONResponse(rubric_dict)
+        # Si el proveedor es 'rules' (offline), puede usar la base tal cual (simple y estable).
+        # Si en el futuro añade un LLM real, aquí puede refinar los textos en vez de reemplazarlos.
+        return JSONResponse(
+            {
+                "levels": tpl.levels,
+                "rows": base_rows,
+                "provider": provider.name,
+                "rubric_type": tpl.id,
+            }
+        )
 
     @app.get("/health")
     def health() -> dict:
@@ -62,7 +74,22 @@ def create_app() -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     def home(request: Request):
-        return templates.TemplateResponse("index.html", {"request": request})
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "rubric_templates": list_rubric_templates()},
+        )
+
+    @app.get("/rubric/templates/{template_id}")
+    def get_rubric_template(template_id: str):
+        t = load_rubric_template(template_id)
+        return JSONResponse(
+            {
+                "id": t.id,
+                "label": t.label,
+                "levels": t.levels,
+                "descriptor_patterns": t.descriptor_patterns,
+            }
+        )
 
     @app.post("/generate")
     def generate(
@@ -78,6 +105,7 @@ def create_app() -> FastAPI:
         sessions_json: str = Form(...),
         resumen: str = Form(""),
         rubric_json: str = Form(""),
+        rubric_type: str = Form("proyecto"),
     ):
         try:
             sessions_raw = json.loads(sessions_json)
@@ -124,7 +152,9 @@ def create_app() -> FastAPI:
             resumen_text = _auto_summary(spec)
 
         rubric_for_meta = json.loads(rubric_json) if rubric_json.strip() else None
-        metadata = build_metadata(spec, resumen=resumen_text, rubric=rubric_for_meta)
+        metadata = build_metadata(
+            spec, resumen=resumen_text, rubric=rubric_for_meta, rubric_type=rubric_type
+        )
         metadata_bytes = json.dumps(metadata, ensure_ascii=False, indent=2).encode("utf-8")
 
         zip_bytes = build_zip(

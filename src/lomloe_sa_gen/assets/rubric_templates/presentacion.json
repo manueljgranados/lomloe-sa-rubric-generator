@@ -1,0 +1,11 @@
+{
+  "id": "presentacion",
+  "label": "Presentación",
+  "levels": ["4 - Excelente", "3 - Notable", "2 - Suficiente", "1 - En proceso"],
+  "descriptor_patterns": [
+    "Comunica con claridad y solvencia {criterion}: estructura impecable y uso adecuado de recursos.",
+    "Comunica bien {criterion}: estructura adecuada y recursos mayormente pertinentes.",
+    "Comunica de forma básica {criterion}: estructura mejorable y recursos limitados.",
+    "Dificultades para comunicar {criterion}: falta estructura o coherencia; requiere mejora."
+  ]
+}

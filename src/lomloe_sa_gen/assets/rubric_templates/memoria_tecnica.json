@@ -1,0 +1,11 @@
+{
+  "id": "memoria_tecnica",
+  "label": "Memoria técnica",
+  "levels": ["4 - Excelente", "3 - Notable", "2 - Suficiente", "1 - En proceso"],
+  "descriptor_patterns": [
+    "Documenta {criterion} con rigor: precisión técnica, justificación y trazabilidad completas.",
+    "Documenta {criterion} adecuadamente: precisión general y justificación suficiente.",
+    "Documenta {criterion} de forma mínima: faltan detalles o justificaciones relevantes.",
+    "Documentación de {criterion} incompleta: requiere reestructuración y ampliación."
+  ]
+}

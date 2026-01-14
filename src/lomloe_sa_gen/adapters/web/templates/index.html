@@ -60,6 +60,14 @@
               </div>
             </div>
 
+            <label>Tipo de rúbrica</label>
+            <select name="rubric_type" id="rubricType">
+              {% for t in rubric_templates %}
+                <option value="{{ t.id }}">{{ t.label }}</option>
+              {% endfor %}
+            </select>
+            <p class="hint">El tipo aplica niveles y descriptores iniciales por criterio. Luego puede editarlo.</p>
+
             <input type="hidden" id="rubric_json" name="rubric_json" />
 
 <div id="rubricEditor"></div>
@@ -101,6 +109,52 @@
         const addBtn = document.getElementById("addSession");
         const removeBtn = document.getElementById("removeSession");
         const hiddenJson = document.getElementById("sessions_json");
+
+        const rubricTypeSelect = document.getElementById("rubricType");
+
+        async function fetchRubricTemplate(templateId) {
+          const res = await fetch(`/rubric/templates/${templateId}`);
+          if (!res.ok) {
+            throw new Error("No se pudo cargar la plantilla de rúbrica");
+          }
+          return await res.json();
+        }
+
+        function applyTemplateToUI(tpl) {
+          // Ajustar niveles
+          document.getElementById("lvl1").value = tpl.levels[0];
+          document.getElementById("lvl2").value = tpl.levels[1];
+          document.getElementById("lvl3").value = tpl.levels[2];
+          document.getElementById("lvl4").value = tpl.levels[3];
+
+          // Construir filas con patrones
+          const criterios = getCriterios();
+          const rowsData = criterios.map((c) => ({
+            criterion: c,
+            descriptors: tpl.descriptor_patterns.map((p) => p.replace("{criterion}", c)),
+          }));
+
+          buildRubricTable(tpl.levels, criterios, rowsData);
+        }
+
+        rubricTypeSelect.addEventListener("change", async () => {
+          try {
+            const tpl = await fetchRubricTemplate(rubricTypeSelect.value);
+            applyTemplateToUI(tpl);
+          } catch (e) {
+            alert(String(e));
+          }
+        });
+
+        // Recomendación: al cargar la página, aplicar el tipo inicial
+        window.addEventListener("load", async () => {
+          try {
+            const tpl = await fetchRubricTemplate(rubricTypeSelect.value);
+            applyTemplateToUI(tpl);
+          } catch (_) {
+            // silencioso
+          }
+        });
 
         function sessionBlock(index) {
           const div = document.createElement("div");
@@ -232,7 +286,8 @@
           const payload = {
             criterios,
             levels,
-            context: `${document.querySelector('input[name="materia"]').value} | ${document.querySelector('input[name="nivel"]').value} | ${document.querySelector('input[name="titulo"]').value}`
+            rubric_type: rubricTypeSelect.value,  // <-- AÑADIR AQUÍ
+            context: `${document.querySelector('input[name="materia"]').value} | ${document.querySelector('input[name="nivel"]').value} | ${document.querySelector('input[name="titulo"]').value}`,
           };
 
           const res = await fetch("/rubric/suggest", {

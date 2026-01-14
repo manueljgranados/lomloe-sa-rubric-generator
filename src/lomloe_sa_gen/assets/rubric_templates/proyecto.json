@@ -1,0 +1,11 @@
+{
+  "id": "proyecto",
+  "label": "Proyecto",
+  "levels": ["4 - Excelente", "3 - Notable", "2 - Suficiente", "1 - En proceso"],
+  "descriptor_patterns": [
+    "Demuestra un desempeño excelente en {criterion}: evidencia completa, justificada y coherente.",
+    "Cumple de forma notable {criterion}: evidencia suficiente, con pequeñas mejoras posibles.",
+    "Alcanza lo mínimo en {criterion}: evidencia parcial o con alguna imprecisión.",
+    "En proceso en {criterion}: evidencia insuficiente; requiere apoyo y revisión."
+  ]
+}

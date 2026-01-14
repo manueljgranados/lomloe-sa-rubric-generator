@@ -34,4 +34,4 @@ target-version = "py312"
 testpaths = ["tests"]
 
 [tool.setuptools.package-data]
-lomloe_sa_gen = ["assets/templates/*.docx"]
+lomloe_sa_gen = ["assets/templates/*.docx","assets/rubric_templates/*.json"]
