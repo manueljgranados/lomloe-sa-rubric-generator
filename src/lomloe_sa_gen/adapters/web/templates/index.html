@@ -5,337 +5,832 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Generador SA + Rúbricas</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
-      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      label { display:block; font-weight: 600; margin-top: 12px; }
-      input, textarea { width: 100%; padding: 10px; }
-      textarea { min-height: 90px; }
-      .hint { color: #555; font-size: 0.9rem; }
-      button { margin-top: 18px; padding: 10px 14px; cursor: pointer; }
+      :root {
+        color-scheme: light;
+        --bg: #f6f4f0;
+        --bg-elev: #ffffff;
+        --bg-accent: #efe7db;
+        --text: #1f2933;
+        --muted: #52616b;
+        --border: #e1d7c9;
+        --primary: #1d4e89;
+        --primary-2: #e07a5f;
+        --success: #2f855a;
+        --danger: #c53030;
+        --shadow: 0 12px 30px rgba(20, 24, 35, 0.08);
+        --radius: 16px;
+      }
+
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #15191d;
+        --bg-elev: #1f252b;
+        --bg-accent: #222b33;
+        --text: #eef1f4;
+        --muted: #a4b1be;
+        --border: #2c3641;
+        --primary: #4aa3ff;
+        --primary-2: #f2994a;
+        --success: #4fd1c5;
+        --danger: #fc8181;
+        --shadow: 0 16px 34px rgba(0, 0, 0, 0.4);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+        background: linear-gradient(135deg, var(--bg) 0%, var(--bg-accent) 60%, var(--bg) 100%);
+        color: var(--text);
+      }
+
+      .page {
+        padding: 32px 20px 48px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header.hero {
+        background: var(--bg-elev);
+        padding: 28px 32px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .hero h1 {
+        margin: 0 0 6px;
+        font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 520px;
+      }
+
+      .badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .badge {
+        background: var(--bg-accent);
+        color: var(--text);
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        border: 1px solid var(--border);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 24px;
+        margin-top: 24px;
+      }
+
+      .card {
+        background: var(--bg-elev);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+
+      .card h2 {
+        margin: 0 0 12px;
+        font-size: 1.25rem;
+      }
+
+      .card h3 {
+        margin: 16px 0 8px;
+        font-size: 1.05rem;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin: 6px 0 0;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: 2px solid transparent;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(29, 78, 137, 0.2);
+      }
+
+      textarea { min-height: 120px; }
+
+      .row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 18px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.1s ease, box-shadow 0.2s ease;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #2d7fe0);
+        color: #fff;
+      }
+
+      .btn-secondary {
+        background: var(--bg-accent);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--text);
+        border: 1px dashed var(--border);
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(29, 78, 137, 0.18);
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--bg-accent);
+        border-radius: 999px;
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+      }
+
+      .toggle input { width: 36px; height: 18px; }
+
+      .rubric-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 0.92rem;
+      }
+
+      .rubric-table th,
+      .rubric-table td {
+        border: 1px solid var(--border);
+        padding: 10px;
+        vertical-align: top;
+      }
+
+      .rubric-table th {
+        background: var(--bg-accent);
+        text-align: left;
+      }
+
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+      .sessions-list { display: grid; gap: 16px; }
+
+      .session {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        background: var(--bg);
+      }
+
+      .session header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .pill {
+        background: var(--primary-2);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+      }
+
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--danger);
+        padding: 14px 18px;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        max-width: 320px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 50;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-top-color: #fff;
+        display: inline-block;
+        animation: spin 0.8s linear infinite;
+        margin-right: 6px;
+      }
+
+      .btn-secondary .spinner {
+        border-color: rgba(29, 78, 137, 0.2);
+        border-top-color: var(--primary);
+      }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      .guide {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        padding: 20px;
+        background: var(--bg-elev);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+
+      .guide ul {
+        padding-left: 18px;
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .guide-mobile {
+        display: none;
+        margin-bottom: 20px;
+      }
+
+      .footer {
+        margin-top: 28px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+
+      dialog {
+        border: none;
+        border-radius: 16px;
+        padding: 0;
+        width: min(520px, 92vw);
+        background: var(--bg-elev);
+        color: var(--text);
+      }
+
+      .modal-content { padding: 22px; }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .modal-header h3 { margin: 0; }
+
+      @media (max-width: 980px) {
+        .layout { grid-template-columns: 1fr; }
+        .guide { display: none; }
+        .guide-mobile { display: block; }
+        .grid-2 { grid-template-columns: 1fr; }
+        header.hero { flex-direction: column; align-items: flex-start; }
+      }
     </style>
   </head>
   <body>
-    <h1>Generador de Situaciones de Aprendizaje (borrador)</h1>
-    <p class="hint">
-      MVP: genera un Markdown a partir de los campos. Separe listas con saltos de línea.
-    </p>
-
-    <form action="/generate" method="post">
-      <div class="row">
-        <div>
-          <label>Nivel</label>
-          <input name="nivel" placeholder="1º Bachillerato / 2º ESO / FP..." minlength="2" required />
-
-          <label>Materia</label>
-          <input name="materia" placeholder="Tecnología e Ingeniería I" minlength="3" required />
-
-          <label>Título de la SA</label>
-          <input name="titulo" placeholder="Diseño y prototipado de..." minlength="5" required />
-        </div>
-
-        <div>
-          <label>Competencias (una por línea)</label>
-          <textarea name="competencias" placeholder="CE1...\nCE2..." required></textarea>
-
-          <label>Criterios de evaluación (uno por línea)</label>
-          <textarea name="criterios" placeholder="C1...\nC2..." required></textarea>
-
-          <h2>Rúbrica (editable)</h2>
-
-            <div class="row">
-              <div>
-                <label>Niveles (4)</label>
-                <input id="lvl1" value="4 - Excelente" required minlength="3" />
-                <input id="lvl2" value="3 - Notable" required minlength="3" />
-                <input id="lvl3" value="2 - Suficiente" required minlength="3" />
-                <input id="lvl4" value="1 - En proceso" required minlength="3" />
-                <p class="hint">Puede editar los títulos de nivel.</p>
-              </div>
-              <div>
-                <label>Acciones</label>
-                <button type="button" id="buildRubric">Generar tabla desde criterios</button>
-                <button type="button" id="suggestRubric">Sugerir descriptores (IA opcional)</button>
-                <p class="hint">La sugerencia depende de LLM_ENABLED/LLM_PROVIDER.</p>
-              </div>
+    <div class="page">
+      <div class="container">
+        <header class="hero">
+          <div>
+            <h1>Generador de Situaciones de Aprendizaje + Rúbricas</h1>
+            <p>Planifica, estructura y descarga en ZIP tu SA con sesiones y rúbricas listas para aula.</p>
+          </div>
+          <div class="toolbar">
+            <div class="badges">
+              <span class="badge">FastAPI</span>
+              <span class="badge">Jinja2</span>
+              <span class="badge">Docx</span>
+              <span class="badge">ZIP</span>
             </div>
+            <label class="toggle">
+              <span>Modo oscuro</span>
+              <input id="themeToggle" type="checkbox" aria-label="Alternar modo oscuro" />
+            </label>
+          </div>
+        </header>
 
-            <label>Tipo de rúbrica</label>
-            <select name="rubric_type" id="rubricType">
-              {% for t in rubric_templates %}
-                <option value="{{ t.id }}">{{ t.label }}</option>
-              {% endfor %}
-            </select>
-            <p class="hint">El tipo aplica niveles y descriptores iniciales por criterio. Luego puede editarlo.</p>
+        <details class="card guide-mobile">
+          <summary><strong>Guia rapida</strong></summary>
+          <ul>
+            <li>Completa criterios y competencias antes de generar la rubrica.</li>
+            <li>Usa "Sugerir" si tienes LLM habilitado en el servidor.</li>
+            <li>Previsualiza para revisar sesiones y criterios antes de descargar.</li>
+            <li>El ZIP incluye Markdown, rubrica y documento Docx.</li>
+          </ul>
+        </details>
 
-            <input type="hidden" id="rubric_json" name="rubric_json" />
+        <div class="layout">
+          <main>
+            <form action="/generate" method="post">
+              <section class="card">
+                <h2>A) Datos básicos</h2>
+                <div class="grid-2">
+                  <div>
+                    <label for="nivel">Nivel</label>
+                    <input id="nivel" name="nivel" placeholder="1o Bachillerato / 2o ESO / FP..." minlength="2" required />
+                  </div>
+                  <div>
+                    <label for="materia">Materia</label>
+                    <input id="materia" name="materia" placeholder="Tecnología e Ingeniería I" minlength="3" required />
+                  </div>
+                </div>
+                <div>
+                  <label for="titulo">Título de la SA</label>
+                  <input id="titulo" name="titulo" placeholder="Diseño y prototipado de..." minlength="5" required />
+                </div>
+              </section>
 
-<div id="rubricEditor"></div>
+              <section class="card">
+                <h2>B) Competencias y criterios</h2>
+                <div class="grid-2">
+                  <div>
+                    <label for="competencias">Competencias (una por línea)</label>
+                    <textarea id="competencias" name="competencias" placeholder="CE1...\nCE2..." required></textarea>
+                  </div>
+                  <div>
+                    <label for="criterios">Criterios de evaluación (uno por línea)</label>
+                    <textarea id="criterios" name="criterios" placeholder="C1...\nC2..." required></textarea>
+                    <p class="hint">Estos criterios alimentan la tabla de rúbrica.</p>
+                  </div>
+                </div>
+              </section>
 
+              <section class="card">
+                <h2>C) Rúbrica</h2>
+                <div class="grid-2">
+                  <div>
+                    <label for="rubricType">Tipo de rúbrica</label>
+                    <select name="rubric_type" id="rubricType">
+                      {% for t in rubric_templates %}
+                        <option value="{{ t.id }}">{{ t.label }}</option>
+                      {% endfor %}
+                    </select>
+                    <p class="hint">El tipo aplica niveles y descriptores base por criterio.</p>
+                  </div>
+                  <div>
+                    <label>Niveles (4)</label>
+                    <input id="lvl1" value="4 - Excelente" required minlength="3" />
+                    <input id="lvl2" value="3 - Notable" required minlength="3" />
+                    <input id="lvl3" value="2 - Suficiente" required minlength="3" />
+                    <input id="lvl4" value="1 - En proceso" required minlength="3" />
+                    <p class="hint">Puedes editar los títulos.</p>
+                  </div>
+                </div>
+                <div class="row-actions">
+                  <button type="button" class="btn btn-secondary" id="buildRubric">Generar tabla desde criterios</button>
+                  <button type="button" class="btn btn-ghost" id="suggestRubric">
+                    <span class="spinner" id="suggestSpinner" hidden></span>
+                    <span>Sugerir descriptores</span>
+                  </button>
+                </div>
+                <p class="hint">La sugerencia depende de la configuracion LLM del servidor.</p>
+
+                <input type="hidden" id="rubric_json" name="rubric_json" />
+                <div id="rubricEditor"></div>
+              </section>
+
+              <section class="card">
+                <h2>D) Diseño didáctico</h2>
+                <div class="grid-2">
+                  <div>
+                    <label for="producto_final">Producto final</label>
+                    <textarea id="producto_final" name="producto_final" minlength="10" required></textarea>
+                  </div>
+                  <div>
+                    <label for="metodologia">Metodología</label>
+                    <textarea id="metodologia" name="metodologia" minlength="10" required></textarea>
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div>
+                    <label for="atencion_diversidad">Atención a la diversidad</label>
+                    <textarea id="atencion_diversidad" name="atencion_diversidad" minlength="10" required></textarea>
+                  </div>
+                  <div>
+                    <label for="instrumentos_evaluacion">Instrumentos de evaluación (uno por línea)</label>
+                    <textarea id="instrumentos_evaluacion" name="instrumentos_evaluacion" required></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card">
+                <h2>E) Resumen (opcional)</h2>
+                <label for="resumen">Resumen para portada</label>
+                <textarea id="resumen" name="resumen" minlength="20" placeholder="Resumen breve de la SA..."></textarea>
+              </section>
+
+              <section class="card">
+                <h2>F) Sesiones</h2>
+                <p class="hint">Gestiona sesiones y se enviaran como JSON al servidor.</p>
+                <input type="hidden" id="sessions_json" name="sessions_json" />
+                <div id="sessions" class="sessions-list"></div>
+                <div class="row-actions">
+                  <button type="button" class="btn btn-secondary" id="addSession">Añadir sesión</button>
+                  <button type="button" class="btn btn-ghost" id="removeSession">Eliminar última</button>
+                </div>
+              </section>
+
+              <section class="card">
+                <h2>G) Acciones finales</h2>
+                <div class="row-actions">
+                  <button type="button" class="btn btn-secondary" id="previewBtn">Previsualizar</button>
+                  <button type="submit" class="btn btn-primary">Generar y descargar ZIP</button>
+                </div>
+                <p class="hint">La descarga incluye Markdown, rubrica, Docx y metadata.</p>
+              </section>
+            </form>
+          </main>
+
+          <aside class="guide">
+            <h3>Guía rápida</h3>
+            <ul>
+              <li>Completa criterios y competencias antes de la rubrica.</li>
+              <li>Usa "Sugerir" si LLM esta habilitado.</li>
+              <li>El boton de previsualización no llama al backend.</li>
+              <li>Descarga un ZIP listo para compartir.</li>
+            </ul>
+          </aside>
         </div>
+
+        <footer class="footer">
+          <span>Healthcheck: <a href="/health">/health</a></span>
+        </footer>
       </div>
+    </div>
 
-      <label>Producto final</label>
-      <textarea name="producto_final" minlength="10" required></textarea>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-      <label>Metodología</label>
-      <textarea name="metodologia" minlength="10" required></textarea>
-
-      <label>Atención a la diversidad</label>
-      <textarea name="atencion_diversidad" minlength="10" required></textarea>
-
-      <label>Instrumentos de evaluación (uno por línea)</label>
-      <textarea name="instrumentos_evaluacion" required></textarea>
-
-      <label>Resumen (opcional, para portada)</label>
-      <textarea name="resumen" minlength="20" placeholder="Resumen breve de la SA..."></textarea>
-
-      <h2>Sesiones</h2>
-      <p class="hint">Añada o elimine sesiones. Se enviarán como JSON al servidor.</p>
-
-      <input type="hidden" id="sessions_json" name="sessions_json" />
-
-      <div id="sessions"></div>
-
-      <div style="display:flex; gap: 12px; margin-top: 12px;">
-        <button type="button" id="addSession">Añadir sesión</button>
-        <button type="button" id="removeSession">Eliminar última</button>
+    <dialog id="previewModal">
+      <div class="modal-header">
+        <h3>Previsualizacion</h3>
+        <button type="button" class="btn btn-ghost" id="closePreview">Cerrar</button>
       </div>
+      <div class="modal-content">
+        <p class="hint">Resumen rápido de lo que se enviará:</p>
+        <div id="previewContent"></div>
+      </div>
+    </dialog>
 
-      <button type="submit">Generar Markdown</button>
+    <script>
+      const body = document.body;
+      const themeToggle = document.getElementById("themeToggle");
+      const storedTheme = localStorage.getItem("theme");
 
-      <script>
-        const sessionsEl = document.getElementById("sessions");
-        const addBtn = document.getElementById("addSession");
-        const removeBtn = document.getElementById("removeSession");
-        const hiddenJson = document.getElementById("sessions_json");
+      if (storedTheme === "dark") {
+        body.setAttribute("data-theme", "dark");
+        themeToggle.checked = true;
+      }
 
-        const rubricTypeSelect = document.getElementById("rubricType");
-
-        async function fetchRubricTemplate(templateId) {
-          const res = await fetch(`/rubric/templates/${templateId}`);
-          if (!res.ok) {
-            throw new Error("No se pudo cargar la plantilla de rúbrica");
-          }
-          return await res.json();
+      themeToggle.addEventListener("change", () => {
+        if (themeToggle.checked) {
+          body.setAttribute("data-theme", "dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          body.removeAttribute("data-theme");
+          localStorage.setItem("theme", "light");
         }
+      });
 
-        function applyTemplateToUI(tpl) {
-          // Ajustar niveles
-          document.getElementById("lvl1").value = tpl.levels[0];
-          document.getElementById("lvl2").value = tpl.levels[1];
-          document.getElementById("lvl3").value = tpl.levels[2];
-          document.getElementById("lvl4").value = tpl.levels[3];
+      const toast = document.getElementById("toast");
+      let toastTimer;
 
-          // Construir filas con patrones
-          const criterios = getCriterios();
-          const rowsData = criterios.map((c) => ({
-            criterion: c,
-            descriptors: tpl.descriptor_patterns.map((p) => p.replace("{criterion}", c)),
-          }));
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 4000);
+      }
 
-          buildRubricTable(tpl.levels, criterios, rowsData);
+      const sessionsEl = document.getElementById("sessions");
+      const addBtn = document.getElementById("addSession");
+      const removeBtn = document.getElementById("removeSession");
+      const hiddenJson = document.getElementById("sessions_json");
+
+      const criteriosEl = document.getElementById("criterios");
+      const rubricEditorEl = document.getElementById("rubricEditor");
+      const rubricHidden = document.getElementById("rubric_json");
+      const rubricTypeSelect = document.getElementById("rubricType");
+      const buildBtn = document.getElementById("buildRubric");
+      const suggestBtn = document.getElementById("suggestRubric");
+      const suggestSpinner = document.getElementById("suggestSpinner");
+
+      async function fetchRubricTemplate(templateId) {
+        const res = await fetch(`/rubric/templates/${templateId}`);
+        if (!res.ok) {
+          throw new Error("No se pudo cargar la plantilla de rubrica");
         }
+        return await res.json();
+      }
 
-        rubricTypeSelect.addEventListener("change", async () => {
-          try {
-            const tpl = await fetchRubricTemplate(rubricTypeSelect.value);
-            applyTemplateToUI(tpl);
-          } catch (e) {
-            alert(String(e));
-          }
+      function getLevels() {
+        return [
+          document.getElementById("lvl1").value.trim(),
+          document.getElementById("lvl2").value.trim(),
+          document.getElementById("lvl3").value.trim(),
+          document.getElementById("lvl4").value.trim(),
+        ];
+      }
+
+      function getCriterios() {
+        return (criteriosEl.value || "")
+          .split("\n")
+          .map(s => s.trim())
+          .filter(Boolean);
+      }
+
+      function buildRubricTable(levels, criterios, rowsData = null) {
+        rubricEditorEl.innerHTML = "";
+        if (criterios.length === 0) return;
+
+        const table = document.createElement("table");
+        table.className = "rubric-table";
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Criterio</th>
+              ${levels.map(l => `<th>${l}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector("tbody");
+
+        criterios.forEach((c, idx) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><div class="mono">${c}</div></td>
+            ${[0, 1, 2, 3].map(j => {
+              const val = rowsData?.[idx]?.descriptors?.[j] ?? "";
+              return `<td><textarea class="rub_desc" data-row="${idx}" data-col="${j}" required minlength="3">${val}</textarea></td>`;
+            }).join("")}
+          `;
+          tbody.appendChild(tr);
         });
 
-        // Recomendación: al cargar la página, aplicar el tipo inicial
-        window.addEventListener("load", async () => {
-          try {
-            const tpl = await fetchRubricTemplate(rubricTypeSelect.value);
-            applyTemplateToUI(tpl);
-          } catch (_) {
-            // silencioso
-          }
-        });
+        rubricEditorEl.appendChild(table);
+      }
 
-        function sessionBlock(index) {
-          const div = document.createElement("div");
-          div.className = "session";
-          div.style.border = "1px solid #ddd";
-          div.style.padding = "12px";
-          div.style.marginTop = "12px";
+      function applyTemplateToUI(tpl) {
+        document.getElementById("lvl1").value = tpl.levels[0];
+        document.getElementById("lvl2").value = tpl.levels[1];
+        document.getElementById("lvl3").value = tpl.levels[2];
+        document.getElementById("lvl4").value = tpl.levels[3];
 
-          div.innerHTML = `
+        const criterios = getCriterios();
+        const rowsData = criterios.map((c) => ({
+          criterion: c,
+          descriptors: tpl.descriptor_patterns.map((p) => p.replace("{criterion}", c)),
+        }));
+
+        buildRubricTable(tpl.levels, criterios, rowsData);
+      }
+
+      rubricTypeSelect.addEventListener("change", async () => {
+        try {
+          const tpl = await fetchRubricTemplate(rubricTypeSelect.value);
+          applyTemplateToUI(tpl);
+        } catch (e) {
+          showToast(String(e));
+        }
+      });
+
+      window.addEventListener("load", async () => {
+        try {
+          const tpl = await fetchRubricTemplate(rubricTypeSelect.value);
+          applyTemplateToUI(tpl);
+        } catch (_) {
+          // silencio
+        }
+      });
+
+      function sessionBlock(index) {
+        const div = document.createElement("div");
+        div.className = "session";
+        div.innerHTML = `
+          <header>
             <h3>Sesión ${index}</h3>
-            <label>Título</label>
-            <input class="s_title" required minlength="3" value="Sesión X" />
+            <span class="pill">${index}</span>
+          </header>
+          <label>Título</label>
+          <input class="s_title" required minlength="3" value="Sesión ${index}" />
 
-            <label>Minutos</label>
-            <input class="s_minutes" type="number" min="10" max="240" value="55" required />
+          <label>Minutos</label>
+          <input class="s_minutes" type="number" min="10" max="240" value="55" required />
 
-            <label>Actividades</label>
-            <textarea class="s_activities" required></textarea>
+          <label>Actividades</label>
+          <textarea class="s_activities" required></textarea>
 
-            <label>Evidencia</label>
-            <input class="s_evidence" required />
-          `;
-          return div;
-        }
+          <label>Evidencia</label>
+          <input class="s_evidence" required />
+        `;
+        return div;
+      }
 
-        function renumber() {
-          [...sessionsEl.querySelectorAll(".session")].forEach((div, i) => {
-            div.querySelector("h3").textContent = `Sesión ${i + 1}`;
-          });
-        }
-
-        function addSession() {
-          const idx = sessionsEl.querySelectorAll(".session").length + 1;
-          sessionsEl.appendChild(sessionBlock(idx));
-        }
-
-        function removeSession() {
-          const blocks = sessionsEl.querySelectorAll(".session");
-          if (blocks.length > 1) {
-            blocks[blocks.length - 1].remove();
-            renumber();
-          }
-        }
-
-        // Inicial: 3 sesiones (como antes, pero dinámico)
-        addSession(); addSession(); addSession();
-
-        addBtn.addEventListener("click", addSession);
-        removeBtn.addEventListener("click", removeSession);
-
-        // Serializar antes de enviar
-        document.querySelector("form").addEventListener("submit", () => {
-          const sessions = [...sessionsEl.querySelectorAll(".session")].map(div => ({
-            title: div.querySelector(".s_title").value.trim(),
-            minutes: Number(div.querySelector(".s_minutes").value),
-            activities: div.querySelector(".s_activities").value.trim(),
-            evidence: div.querySelector(".s_evidence").value.trim(),
-          }));
-          hiddenJson.value = JSON.stringify(sessions);
+      function renumber() {
+        [...sessionsEl.querySelectorAll(".session")].forEach((div, i) => {
+          div.querySelector("h3").textContent = `Sesión ${i + 1}`;
+          div.querySelector(".pill").textContent = `${i + 1}`;
         });
+      }
 
-        const criteriosEl = document.querySelector('textarea[name="criterios"]');
-        const rubricEditorEl = document.getElementById("rubricEditor");
-        const rubricHidden = document.getElementById("rubric_json");
+      function addSession() {
+        const idx = sessionsEl.querySelectorAll(".session").length + 1;
+        sessionsEl.appendChild(sessionBlock(idx));
+      }
 
-        function getLevels() {
-          return [
-            document.getElementById("lvl1").value.trim(),
-            document.getElementById("lvl2").value.trim(),
-            document.getElementById("lvl3").value.trim(),
-            document.getElementById("lvl4").value.trim(),
-          ];
+      function removeSession() {
+        const blocks = sessionsEl.querySelectorAll(".session");
+        if (blocks.length > 1) {
+          blocks[blocks.length - 1].remove();
+          renumber();
         }
+      }
 
-        function getCriterios() {
-          return (criteriosEl.value || "")
-            .split("\n")
-            .map(s => s.trim())
-            .filter(Boolean);
-        }
+      addSession();
+      addSession();
+      addSession();
 
-        function buildRubricTable(levels, criterios, rowsData=null) {
-          rubricEditorEl.innerHTML = "";
-          if (criterios.length === 0) return;
+      addBtn.addEventListener("click", addSession);
+      removeBtn.addEventListener("click", removeSession);
 
-          const table = document.createElement("table");
-          table.style.width = "100%";
-          table.style.borderCollapse = "collapse";
-          table.innerHTML = `
-            <thead>
-              <tr>
-                <th style="border:1px solid #ddd; padding:8px;">Criterio</th>
-                ${levels.map(l => `<th style="border:1px solid #ddd; padding:8px;">${l}</th>`).join("")}
-              </tr>
-            </thead>
-            <tbody></tbody>
-          `;
+      function updateCriteriaState() {
+        const criterios = getCriterios();
+        const hasCriteria = criterios.length > 0;
+        buildBtn.disabled = !hasCriteria;
+        suggestBtn.disabled = !hasCriteria;
+      }
 
-          const tbody = table.querySelector("tbody");
+      criteriosEl.addEventListener("input", updateCriteriaState);
+      updateCriteriaState();
 
-          criterios.forEach((c, idx) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td style="border:1px solid #ddd; padding:8px; vertical-align:top;">
-                <div class="mono">${c}</div>
-              </td>
-              ${[0,1,2,3].map(j => {
-                const val = rowsData?.[idx]?.descriptors?.[j] ?? "";
-                return `<td style="border:1px solid #ddd; padding:8px;">
-                          <textarea class="rub_desc" data-row="${idx}" data-col="${j}" required minlength="3">${val}</textarea>
-                        </td>`;
-              }).join("")}
-            `;
-            tbody.appendChild(tr);
-          });
+      buildBtn.addEventListener("click", () => {
+        buildRubricTable(getLevels(), getCriterios());
+      });
 
-          rubricEditorEl.appendChild(table);
-        }
+      suggestBtn.addEventListener("click", async () => {
+        const levels = getLevels();
+        const criterios = getCriterios();
+        if (criterios.length === 0) return;
 
-        document.getElementById("buildRubric").addEventListener("click", () => {
-          buildRubricTable(getLevels(), getCriterios());
-        });
+        suggestBtn.disabled = true;
+        suggestSpinner.hidden = false;
 
-        document.getElementById("suggestRubric").addEventListener("click", async () => {
-          const levels = getLevels();
-          const criterios = getCriterios();
-          if (criterios.length === 0) return;
+        const payload = {
+          criterios,
+          levels,
+          rubric_type: rubricTypeSelect.value,
+          context: `${document.getElementById("materia").value} | ${document.getElementById("nivel").value} | ${document.getElementById("titulo").value}`,
+        };
 
-          const payload = {
-            criterios,
-            levels,
-            rubric_type: rubricTypeSelect.value,  // <-- AÑADIR AQUÍ
-            context: `${document.querySelector('input[name="materia"]').value} | ${document.querySelector('input[name="nivel"]').value} | ${document.querySelector('input[name="titulo"]').value}`,
-          };
-
+        try {
           const res = await fetch("/rubric/suggest", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
           });
 
           if (!res.ok) {
-            alert("No se pudo sugerir la rúbrica (revise configuración/servidor).");
-            return;
+            throw new Error("No se pudo sugerir la rubrica. Revisa servidor o configuracion.");
           }
 
           const data = await res.json();
           buildRubricTable(data.levels, criterios, data.rows);
-        });
+        } catch (e) {
+          showToast(String(e));
+        } finally {
+          suggestBtn.disabled = false;
+          suggestSpinner.hidden = true;
+        }
+      });
 
-        // En el submit, además de sesiones, serializamos rubric_json
-        document.querySelector("form").addEventListener("submit", () => {
-          const criterios = getCriterios();
-          const levels = getLevels();
+      const previewBtn = document.getElementById("previewBtn");
+      const previewModal = document.getElementById("previewModal");
+      const closePreview = document.getElementById("closePreview");
+      const previewContent = document.getElementById("previewContent");
 
-          const table = rubricEditorEl.querySelector("table");
-          if (!table) {
-            // Si no han construido la tabla, la creamos vacía para no romper backend
-            buildRubricTable(levels, criterios);
-          }
+      previewBtn.addEventListener("click", () => {
+        const criterios = getCriterios();
+        const sessionsCount = sessionsEl.querySelectorAll(".session").length;
+        previewContent.innerHTML = `
+          <p><strong>Nivel:</strong> ${document.getElementById("nivel").value || "-"}</p>
+          <p><strong>Materia:</strong> ${document.getElementById("materia").value || "-"}</p>
+          <p><strong>Título:</strong> ${document.getElementById("titulo").value || "-"}</p>
+          <p><strong>Número de criterios:</strong> ${criterios.length}</p>
+          <p><strong>Número de sesiones:</strong> ${sessionsCount}</p>
+        `;
+        previewModal.showModal();
+      });
 
-          // Recoger descriptores por filas
-          const rows = criterios.map((c, idx) => {
-            const desc = [0,1,2,3].map(j => {
-              const ta = rubricEditorEl.querySelector(`textarea.rub_desc[data-row="${idx}"][data-col="${j}"]`);
-              return (ta?.value || "").trim();
-            });
-            return { criterion: c, descriptors: desc };
+      closePreview.addEventListener("click", () => previewModal.close());
+
+      document.querySelector("form").addEventListener("submit", () => {
+        const sessions = [...sessionsEl.querySelectorAll(".session")].map(div => ({
+          title: div.querySelector(".s_title").value.trim(),
+          minutes: Number(div.querySelector(".s_minutes").value),
+          activities: div.querySelector(".s_activities").value.trim(),
+          evidence: div.querySelector(".s_evidence").value.trim(),
+        }));
+        hiddenJson.value = JSON.stringify(sessions);
+
+        const criterios = getCriterios();
+        const levels = getLevels();
+        const table = rubricEditorEl.querySelector("table");
+
+        if (!table && criterios.length > 0) {
+          buildRubricTable(levels, criterios);
+        }
+
+        const rows = criterios.map((c, idx) => {
+          const desc = [0, 1, 2, 3].map(j => {
+            const ta = rubricEditorEl.querySelector(`textarea.rub_desc[data-row="${idx}"][data-col="${j}"]`);
+            return (ta?.value || "").trim();
           });
-
-          rubricHidden.value = JSON.stringify({ levels, rows });
+          return { criterion: c, descriptors: desc };
         });
 
-        // Sugerencia: construir tabla automáticamente al cargar, si ya hay criterios
-        // (opcional) buildRubricTable(getLevels(), getCriterios());
-
-
-      </script>
-    </form>
-
-    <hr />
-    <p class="hint">Healthcheck: <a href="/health">/health</a></p>
+        rubricHidden.value = JSON.stringify({ levels, rows });
+      });
+    </script>
   </body>
 </html>

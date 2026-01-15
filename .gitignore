@@ -20,3 +20,6 @@ data/
 
 # Parametros locales
 .env
+
+# Gestionar las plantillas sólo localmente
+rubric_templates/
